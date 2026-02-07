@@ -1,0 +1,27 @@
+{
+  "defaults": {
+    "strict": false,
+    "ci": false,
+    "json": false,
+    "yes": false,
+    "dryRun": false,
+    "force": false,
+    "allowUnverifiable": false
+  },
+  "resolver": {
+    "githubTimeoutMs": 15000,
+    "githubRetries": 2,
+    "githubRetryBaseMs": 300,
+    "maxFileBytes": 250000,
+    "maxAuxFiles": 40,
+    "maxTotalFiles": 120
+  },
+  "policy": {
+    "allowForce": true,
+    "allowUnverifiableOverride": true,
+    "allowedOwners": [],
+    "blockedOwners": [],
+    "allowedRepos": [],
+    "blockedRepos": []
+  }
+}

@@ -1,0 +1,28 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Local agent/workspace state
+.agent/
+.agents/
+
+# Local overrides (keep example file public)
+guardskills.config.local.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
