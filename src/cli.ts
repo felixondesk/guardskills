@@ -1,6 +1,7 @@
 import { Command } from "commander";
 
 import { runAddCommand } from "./commands/add.js";
+import { runScanClawHubCommand } from "./commands/scan-clawhub.js";
 import { runScanLocalCommand } from "./commands/scan-local.js";
 import { isGuardSkillsError } from "./lib/errors.js";
 
@@ -10,7 +11,7 @@ async function main(): Promise<void> {
   program
     .name("guardskills")
     .description("Security wrapper around skills add")
-    .version("1.0.0");
+    .version("1.1.0");
 
   program
     .command("add")
@@ -48,6 +49,27 @@ async function main(): Promise<void> {
     .option("--max-total-files <count>", "Max total files to scan")
     .action(async (inputPath: string, options: Record<string, unknown>) => {
       const code = await runScanLocalCommand(inputPath, options);
+      process.exitCode = code;
+    });
+
+  program
+    .command("scan-clawhub")
+    .description("Scan a ClawHub skill package and print a risk decision")
+    .argument("<identifier>", "ClawHub package identifier")
+    .option("--skill <name>", "Override skill folder name to resolve in source repository")
+    .option("--version <version>", "Preferred package version/tag")
+    .option("--clawhub-registry <url>", "ClawHub registry base URL")
+    .option("--config <path>", "Path to guardskills.config.json")
+    .option("--strict", "Use stricter risk thresholds")
+    .option("--json", "Output machine-readable JSON")
+    .option("--github-timeout-ms <ms>", "Upstream resolver request timeout in milliseconds")
+    .option("--github-retries <count>", "Retry count for retryable upstream errors")
+    .option("--github-retry-base-ms <ms>", "Base backoff delay for upstream retries")
+    .option("--max-file-bytes <bytes>", "Max file size to scan")
+    .option("--max-aux-files <count>", "Max auxiliary files from scripts/src folders")
+    .option("--max-total-files <count>", "Max total resolved files to scan")
+    .action(async (identifier: string, options: Record<string, unknown>) => {
+      const code = await runScanClawHubCommand(identifier, options);
       process.exitCode = code;
     });
 

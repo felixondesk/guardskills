@@ -40,6 +40,7 @@ npx guardskills add https://github.com/vercel-labs/skills --skill find-skills
 
 - `guardskills add <repo> --skill <name>`
 - `guardskills scan-local <path>`
+- `guardskills scan-clawhub <identifier>`
 - GitHub resolver (`owner/repo` and `https://github.com/...`)
 - Deterministic static scanner with rule matrix in `RULES.md`
 - Score-based decision engine with hard-block guardrails
@@ -89,25 +90,87 @@ npm run ci
 npm run audit:prod
 ```
 
-Local dry-run:
+## Scan Skills by Source
 
-```bash
-guardskills add https://github.com/vercel-labs/skills --skill find-skills --dry-run
-```
+Use this section as the clean reference for supported scan sources.
 
-Local folder check:
+### 1. Local Skills
+
+Scan a skill folder on disk:
 
 ```bash
 guardskills scan-local C:\path\to\skill-folder
 ```
 
-Deterministic CI gate:
+If the path contains multiple skills:
 
 ```bash
-guardskills add https://github.com/vercel-labs/skills --skill find-skills --ci --json
+guardskills scan-local C:\path\to\skills --skill <skill-folder-name>
 ```
 
-With resolver reliability controls:
+JSON output:
+
+```bash
+guardskills scan-local C:\path\to\skill-folder --json
+```
+
+### 2. GitHub Skills
+
+Scan a GitHub-hosted skill without installing:
+
+```bash
+guardskills add owner/repo --skill <skill-name> --dry-run
+```
+
+Also supported:
+
+```bash
+guardskills add https://github.com/owner/repo --skill <skill-name> --dry-run
+```
+
+CI/machine-readable output:
+
+```bash
+guardskills add owner/repo --skill <skill-name> --ci --json
+```
+
+### 3. `skills.sh` Skills
+
+For `skills.sh` installs, run the same guarded GitHub scan flow first:
+
+```bash
+guardskills add owner/repo --skill <skill-name> --dry-run
+```
+
+Then, only if acceptable, run the guarded install handoff:
+
+```bash
+guardskills add owner/repo --skill <skill-name>
+```
+
+Never run `skills add ...` directly before `guardskills`.
+
+### 4. ClawHub Skills
+
+Scan by ClawHub identifier:
+
+```bash
+guardskills scan-clawhub owner/skill-slug
+```
+
+Scan by full ClawHub link:
+
+```bash
+guardskills scan-clawhub https://clawhub.ai/owner/skill-slug
+```
+
+JSON output:
+
+```bash
+guardskills scan-clawhub https://clawhub.ai/owner/skill-slug --json
+```
+
+## Resolver Controls
 
 ```bash
 guardskills add owner/repo --skill name \
@@ -118,32 +181,6 @@ guardskills add owner/repo --skill name \
   --max-aux-files 40 \
   --max-total-files 120
 ```
-
-## Local Check (Folder on Disk)
-
-Scan any local skill directory:
-
-```bash
-guardskills scan-local C:\Felix\Skills\x-algo-skills\.github\skills\x-algo-post
-```
-
-JSON output:
-
-```bash
-guardskills scan-local C:\Felix\Skills\x-algo-skills\.github\skills\x-algo-post --json
-```
-
-If your path contains multiple skills, select one by directory name:
-
-```bash
-guardskills scan-local C:\Felix\Skills\x-algo-skills\.github\skills --skill x-algo-post
-```
-
-Path handling:
-
-- missing path: fails with clear error and nearby suggestions
-- folder with one discovered `SKILL.md`: auto-selects it
-- folder with multiple discovered `SKILL.md`: asks for `--skill <name>`
 
 ## Configuration File
 
@@ -202,66 +239,19 @@ Use this section as instructions for OpenClaw so it runs `guardskills` before in
 
 Before any skill install, always run a `guardskills` scan first.
 
-### 1. Scan GitHub Skills
-
-Use `guardskills add` with `--dry-run` for scan-only mode.
+### 1. Local Skills
 
 ```bash
-guardskills add owner/repo --skill <skill-name> --dry-run
+guardskills scan-local <path-to-skill-folder>
 ```
 
-Example:
+If multiple skills are found:
 
 ```bash
-guardskills add expo/skills --skill expo-app-design --dry-run
+guardskills scan-local <path-to-skills-root> --skill <skill-folder-name>
 ```
 
-If the user gives a full GitHub URL like:
-
-`https://github.com/expo/skills/tree/main/plugins/expo-app-design`
-
-convert it to:
-
-- repo: `expo/skills`
-- skill: `expo-app-design`
-
-Then run:
-
-```bash
-guardskills add expo/skills --skill expo-app-design --dry-run
-```
-
-For CI/machine output:
-
-```bash
-guardskills add owner/repo --skill <skill-name> --ci --json
-```
-
-### 2. Scan Local Skills
-
-Use `scan-local` when the skill is on disk:
-
-```bash
-guardskills scan-local C:\path\to\skill-folder
-```
-
-If multiple skills exist under a parent folder:
-
-```bash
-guardskills scan-local C:\path\to\skills --skill <skill-folder-name>
-```
-
-For JSON output:
-
-```bash
-guardskills scan-local C:\path\to\skill-folder --json
-```
-
-### 3. Scan Other Skills
-
-"Other skills" means any non-local skill from another GitHub repository.
-
-Use:
+### 2. GitHub Skills
 
 ```bash
 guardskills add owner/repo --skill <skill-name> --dry-run
@@ -273,6 +263,40 @@ Also supported:
 guardskills add https://github.com/owner/repo --skill <skill-name> --dry-run
 ```
 
+### 3. `skills.sh` Skills
+
+Use the same guarded GitHub flow before install:
+
+```bash
+guardskills add owner/repo --skill <skill-name> --dry-run
+```
+
+If allowed:
+
+```bash
+guardskills add owner/repo --skill <skill-name>
+```
+
+### 4. ClawHub Skills
+
+Use `scan-clawhub` with either identifier or full URL:
+
+```bash
+guardskills scan-clawhub owner/skill-slug
+```
+
+```bash
+guardskills scan-clawhub https://clawhub.ai/owner/skill-slug
+```
+
+For machine output:
+
+```bash
+guardskills scan-clawhub https://clawhub.ai/owner/skill-slug --json
+```
+
+If the ClawHub API does not expose GitHub source metadata, `guardskills` falls back to scanning the downloadable ClawHub archive payload.
+
 ### How OpenClaw Should Interpret Results
 
 - `SAFE`: proceed.
@@ -283,13 +307,25 @@ guardskills add https://github.com/owner/repo --skill <skill-name> --dry-run
 
 ### Recommended Install Workflow
 
-1. Run scan:
+1. Run scan for source type:
 
 ```bash
 guardskills add owner/repo --skill <skill-name> --dry-run
 ```
 
-2. Only if decision is acceptable, run install through guardskills:
+or
+
+```bash
+guardskills scan-local <path>
+```
+
+or
+
+```bash
+guardskills scan-clawhub https://clawhub.ai/owner/skill-slug
+```
+
+2. Only if decision is acceptable, run install through guardskills (GitHub/skills.sh flow):
 
 ```bash
 guardskills add owner/repo --skill <skill-name>
@@ -301,9 +337,10 @@ Do not run `skills add` directly first.
 
 ```text
 Before installing any skill, always run guardskills first.
-For GitHub skills, run: guardskills add owner/repo --skill <skill-name> --dry-run
 For local skills, run: guardskills scan-local <path>
-If SAFE, proceed with guardskills add owner/repo --skill <skill-name>.
+For GitHub or skills.sh skills, run: guardskills add owner/repo --skill <skill-name> --dry-run
+For ClawHub skills, run: guardskills scan-clawhub <owner/slug-or-full-url>
+If SAFE, proceed.
 If WARNING, ask for confirmation.
 If UNSAFE/CRITICAL, block.
 If UNVERIFIABLE, block unless user explicitly requests override.

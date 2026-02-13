@@ -20,6 +20,13 @@ export interface ResolvedSkill {
   skillFilePath: string;
   files: ResolvedFile[];
   unverifiableReasons: string[];
+  sourceMetadata?: {
+    clawhubModeration?: {
+      isSuspicious?: boolean;
+      isMalwareBlocked?: boolean;
+      isRemoved?: boolean;
+    };
+  };
 }
 
 interface TreeBlobEntry {
