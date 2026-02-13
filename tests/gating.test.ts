@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { AddCommandOptions } from "../src/commands/add.js";
 import { evaluateGate } from "../src/commands/add.js";

@@ -32,3 +32,9 @@ Out of scope:
 
 - vulnerabilities in third-party skill repositories themselves
 - social engineering reports without technical exploit details
+
+## Limitations
+
+- `guardskills` is an additional security control layer and not a guarantee of safety.
+- We do not maintain or control `skills.sh` or third-party skill repositories.
+- Scanner-based detection can miss novel or heavily obfuscated malware.

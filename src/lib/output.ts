@@ -1,4 +1,4 @@
-﻿import type { ScoringResult } from "../scoring/types.js";
+import type { ScoringResult } from "../scoring/types.js";
 
 export interface AddCommandReport {
   command: string;
@@ -12,6 +12,18 @@ export interface AddCommandReport {
   scanFiles: string[];
   skillDir?: string;
   commitSha?: string;
+  unverifiableReasons?: string[];
+  note: string;
+}
+
+export interface LocalScanReport {
+  command: string;
+  inputPath: string;
+  strict: boolean;
+  configPath?: string;
+  decision: ScoringResult;
+  scanFiles: string[];
+  skillDir: string;
   unverifiableReasons?: string[];
   note: string;
 }
@@ -69,5 +81,53 @@ export function printHumanReport(report: AddCommandReport): void {
 }
 
 export function printJsonReport(report: AddCommandReport): void {
+  console.log(JSON.stringify(report, null, 2));
+}
+
+export function printHumanLocalReport(report: LocalScanReport): void {
+  console.log(`Command: ${report.command}`);
+  console.log(`Path: ${report.inputPath}`);
+  console.log(`Mode: ${report.strict ? "strict" : "standard"}`);
+  if (report.configPath) {
+    console.log(`Config: ${report.configPath}`);
+  }
+  console.log(`Skill Dir: ${report.skillDir}`);
+  console.log(`Files Scanned: ${report.scanFiles.length}`);
+
+  if (report.decision.riskScore === null) {
+    console.log("Result: UNVERIFIABLE");
+  } else {
+    console.log(`Risk Score: ${report.decision.riskScore.toFixed(1)}/100`);
+    console.log(`Decision: ${report.decision.level}`);
+  }
+
+  if (report.unverifiableReasons && report.unverifiableReasons.length > 0) {
+    console.log("Unverifiable Reasons:");
+    for (const reason of report.unverifiableReasons) {
+      console.log(`- ${reason}`);
+    }
+  }
+
+  if (report.decision.chainMatches.length > 0) {
+    console.log("Attack Chains:");
+    for (const chain of report.decision.chainMatches) {
+      console.log(`- ${chain.id} (+${chain.bonus}): ${chain.description}`);
+    }
+  }
+
+  if (report.decision.findings.length > 0) {
+    console.log("Findings:");
+    for (const finding of report.decision.findings.slice(0, 10)) {
+      const fileText = finding.file ? ` (${finding.file})` : "";
+      console.log(`- [${finding.severity}/${finding.confidence}] ${finding.title}${fileText}`);
+    }
+  } else {
+    console.log("Findings: none");
+  }
+
+  console.log(`Note: ${report.note}`);
+}
+
+export function printJsonLocalReport(report: LocalScanReport): void {
   console.log(JSON.stringify(report, null, 2));
 }

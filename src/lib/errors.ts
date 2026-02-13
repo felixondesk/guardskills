@@ -1,5 +1,6 @@
 export type GuardSkillsErrorCode =
   | "INVALID_REPO_INPUT"
+  | "INVALID_LOCAL_PATH"
   | "INVALID_CONFIG"
   | "POLICY_VIOLATION"
   | "SKILL_NOT_FOUND"

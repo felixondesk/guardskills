@@ -1,7 +1,25 @@
 {
   "name": "guardskills",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Security wrapper around skills add",
+  "keywords": [
+    "security",
+    "skills",
+    "cli",
+    "malware-detection",
+    "static-analysis",
+    "supply-chain",
+    "agent-skills",
+    "guardrails"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixondesk/guardskills.git"
+  },
+  "homepage": "https://github.com/felixondesk/guardskills#readme",
+  "bugs": {
+    "url": "https://github.com/felixondesk/guardskills/issues"
+  },
   "license": "MIT",
   "type": "module",
   "bin": {
