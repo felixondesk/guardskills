@@ -22,7 +22,7 @@ Or provider-prefixed wrappers:
 npx guardskills skills add https://github.com/vercel-labs/skills --skill find-skills
 npx guardskills skills add planetscale/database-skills
 npx guardskills playbooks add skill anthropics/skills --skill frontend-design
-npx guardskills openskills install anthropics/skills ui-designer
+npx guardskills openskills install anthropics/skills frontend-design
 npx guardskills openskills install anthropics/skills
 npx guardskills skillkit install rohitg00/skillkit dev-tools
 npx guardskills skillkit install rohitg00/skillkit
@@ -45,7 +45,7 @@ npx guardskills skillkit install rohitg00/skillkit
 
 ## Current Readiness
 
-- Current stage: **stable (v1.2.0)**.
+- Current stage: **stable (v1.2.1)**.
 - Suitable for production use with standard security review practices.
 
 ## Implemented Features
