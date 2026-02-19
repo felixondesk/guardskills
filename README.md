@@ -1,6 +1,6 @@
 # guardskills
 
-`guardskills` is a security wrapper around `skills` installation.
+`guardskills` is a security wrapper around skill installation CLIs (`skills`, `playbooks`, `openskills`, `skillkit`).
 
 GitHub: https://github.com/felixondesk/guardskills
 
@@ -16,12 +16,24 @@ use:
 npx guardskills add https://github.com/vercel-labs/skills --skill find-skills
 ```
 
+Or provider-prefixed wrappers:
+
+```bash
+npx guardskills skills add https://github.com/vercel-labs/skills --skill find-skills
+npx guardskills skills add planetscale/database-skills
+npx guardskills playbooks add skill anthropics/skills --skill frontend-design
+npx guardskills openskills install anthropics/skills ui-designer
+npx guardskills openskills install anthropics/skills
+npx guardskills skillkit install rohitg00/skillkit dev-tools
+npx guardskills skillkit install rohitg00/skillkit
+```
+
 ## What It Does
 
 1. Resolves a skill from GitHub.
 2. Scans resolved files for malicious patterns.
 3. Computes a risk decision (`SAFE`, `WARNING`, `UNSAFE`, `CRITICAL`, `UNVERIFIABLE`).
-4. Proceeds to `npx skills add ...` only if gate policy allows.
+4. Proceeds to the selected installer CLI only if gate policy allows.
 
 ## Security Notice
 
@@ -33,12 +45,19 @@ npx guardskills add https://github.com/vercel-labs/skills --skill find-skills
 
 ## Current Readiness
 
-- Current stage: **stable (v1.0.0)**.
+- Current stage: **stable (v1.2.0)**.
 - Suitable for production use with standard security review practices.
 
 ## Implemented Features
 
-- `guardskills add <repo> --skill <name>`
+- `guardskills add <repo> --skill <name>` (legacy alias for `guardskills skills add`)
+- `guardskills skills add <repo> --skill <name>`
+- `guardskills skills add <repo>` (scan all discovered skills, then skills.sh interactive selection)
+- `guardskills playbooks add skill <repo> --skill <name>`
+- `guardskills openskills install <repo> <skill>`
+- `guardskills openskills install <repo>` (scan all discovered skills, then openskills interactive selection)
+- `guardskills skillkit install <repo> <skill>`
+- `guardskills skillkit install <repo>` (scan all discovered skills, then skillkit install flow)
 - `guardskills scan-local <path>`
 - `guardskills scan-clawhub <identifier>`
 - GitHub resolver (`owner/repo` and `https://github.com/...`)
@@ -61,7 +80,7 @@ npx guardskills add https://github.com/vercel-labs/skills --skill find-skills
   - `--max-file-bytes`
   - `--max-aux-files`
   - `--max-total-files`
-- Installer handoff to `npx skills add ...` when allowed
+- Installer handoff to `npx skills|playbooks|openskills|skillkit ...` when allowed
 - Structured resolver error taxonomy + retry/backoff
 - Tests:
   - fixture scanner tests (`safe`, `warning`, `malicious`, `prose-only`)

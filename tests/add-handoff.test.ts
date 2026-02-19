@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   resolveSkillFromGitHub: vi.fn(),
   scanResolvedSkill: vi.fn(),
   calculateRiskScore: vi.fn(),
-  runSkillsInstall: vi.fn(),
+  runProviderInstall: vi.fn(),
   printHumanReport: vi.fn(),
   printJsonReport: vi.fn(),
 }));
@@ -28,7 +28,7 @@ vi.mock("../src/scoring/engine.js", () => ({
 }));
 
 vi.mock("../src/install/skills.js", () => ({
-  runSkillsInstall: mocks.runSkillsInstall,
+  runProviderInstall: mocks.runProviderInstall,
 }));
 
 vi.mock("../src/lib/output.js", () => ({
@@ -65,7 +65,7 @@ describe("runAddCommand install handoff", () => {
     mocks.resolveSkillFromGitHub.mockReset();
     mocks.scanResolvedSkill.mockReset();
     mocks.calculateRiskScore.mockReset();
-    mocks.runSkillsInstall.mockReset();
+    mocks.runProviderInstall.mockReset();
     mocks.printHumanReport.mockReset();
     mocks.printJsonReport.mockReset();
 
@@ -88,20 +88,21 @@ describe("runAddCommand install handoff", () => {
       unverifiableReasons: [],
     });
 
-    mocks.runSkillsInstall.mockResolvedValue(0);
+    mocks.runProviderInstall.mockResolvedValue(0);
     mocks.calculateRiskScore.mockReturnValue(makeDecision("SAFE"));
   });
 
   it("calls installer for SAFE when not dry-run and not ci", async () => {
     const code = await runAddCommand("owner/repo", { skill: "test-skill" });
     expect(code).toBe(0);
-    expect(mocks.runSkillsInstall).toHaveBeenCalledTimes(1);
+    expect(mocks.runProviderInstall).toHaveBeenCalledTimes(1);
+    expect(mocks.runProviderInstall).toHaveBeenCalledWith("skills", "owner/repo", "test-skill");
   });
 
   it("does not call installer in ci mode", async () => {
     const code = await runAddCommand("owner/repo", { skill: "test-skill", ci: true });
     expect(code).toBe(0);
-    expect(mocks.runSkillsInstall).not.toHaveBeenCalled();
+    expect(mocks.runProviderInstall).not.toHaveBeenCalled();
   });
 
   it("requires --yes for WARNING", async () => {
@@ -109,7 +110,7 @@ describe("runAddCommand install handoff", () => {
 
     const code = await runAddCommand("owner/repo", { skill: "test-skill" });
     expect(code).toBe(10);
-    expect(mocks.runSkillsInstall).not.toHaveBeenCalled();
+    expect(mocks.runProviderInstall).not.toHaveBeenCalled();
   });
 
   it("allows WARNING with --yes", async () => {
@@ -117,7 +118,7 @@ describe("runAddCommand install handoff", () => {
 
     const code = await runAddCommand("owner/repo", { skill: "test-skill", yes: true });
     expect(code).toBe(0);
-    expect(mocks.runSkillsInstall).toHaveBeenCalledTimes(1);
+    expect(mocks.runProviderInstall).toHaveBeenCalledTimes(1);
   });
 
   it("blocks UNSAFE unless --force", async () => {
@@ -125,11 +126,11 @@ describe("runAddCommand install handoff", () => {
 
     const blocked = await runAddCommand("owner/repo", { skill: "test-skill" });
     expect(blocked).toBe(20);
-    expect(mocks.runSkillsInstall).not.toHaveBeenCalled();
+    expect(mocks.runProviderInstall).not.toHaveBeenCalled();
 
     const forced = await runAddCommand("owner/repo", { skill: "test-skill", force: true });
     expect(forced).toBe(0);
-    expect(mocks.runSkillsInstall).toHaveBeenCalledTimes(1);
+    expect(mocks.runProviderInstall).toHaveBeenCalledTimes(1);
   });
 
   it("blocks UNVERIFIABLE unless override", async () => {
@@ -137,14 +138,14 @@ describe("runAddCommand install handoff", () => {
 
     const blocked = await runAddCommand("owner/repo", { skill: "test-skill" });
     expect(blocked).toBe(20);
-    expect(mocks.runSkillsInstall).not.toHaveBeenCalled();
+    expect(mocks.runProviderInstall).not.toHaveBeenCalled();
 
     const overridden = await runAddCommand("owner/repo", {
       skill: "test-skill",
       allowUnverifiable: true,
     });
     expect(overridden).toBe(0);
-    expect(mocks.runSkillsInstall).toHaveBeenCalledTimes(1);
+    expect(mocks.runProviderInstall).toHaveBeenCalledTimes(1);
   });
 
   it("applies defaults from guardskills.config.json", async () => {
@@ -156,7 +157,7 @@ describe("runAddCommand install handoff", () => {
     const code = await runAddCommand("owner/repo", { skill: "test-skill" });
 
     expect(code).toBe(0);
-    expect(mocks.runSkillsInstall).not.toHaveBeenCalled();
+    expect(mocks.runProviderInstall).not.toHaveBeenCalled();
   });
 
   it("enforces policy that blocks --force", async () => {
@@ -169,6 +170,20 @@ describe("runAddCommand install handoff", () => {
 
     await expect(runAddCommand("owner/repo", { skill: "test-skill", force: true })).rejects.toThrow(
       /allowForce=false/i,
+    );
+  });
+
+  it("uses provider override for playbooks install handoff", async () => {
+    const code = await runAddCommand(
+      "owner/repo",
+      { skill: "test-skill" },
+      { provider: "playbooks", commandName: "guardskills playbooks add skill" },
+    );
+
+    expect(code).toBe(0);
+    expect(mocks.runProviderInstall).toHaveBeenCalledWith("playbooks", "owner/repo", "test-skill");
+    expect(mocks.printHumanReport).toHaveBeenCalledWith(
+      expect.objectContaining({ command: "guardskills playbooks add skill" }),
     );
   });
 });

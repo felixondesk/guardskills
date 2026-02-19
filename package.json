@@ -1,6 +1,6 @@
 {
   "name": "guardskills",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Security wrapper around skills add",
   "keywords": [
     "security",
@@ -44,6 +44,7 @@
     "build": "tsup src/cli.ts --format esm,cjs --dts --clean",
     "dev": "tsx src/cli.ts",
     "prepare": "npm run build",
+    "test:guardskills": "vitest run tests",
     "ci": "npm run typecheck && npm test && npm run build",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "typecheck": "tsc --noEmit",

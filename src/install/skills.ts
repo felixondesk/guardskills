@@ -1,8 +1,32 @@
-﻿import { execa } from "execa";
+import { execa } from "execa";
 
-export async function runSkillsInstall(repo: string, skill: string): Promise<number> {
+export type SkillInstallerProvider = "skills" | "playbooks" | "openskills" | "skillkit";
+
+export async function runProviderInstall(
+  provider: SkillInstallerProvider,
+  repo: string,
+  skill?: string,
+): Promise<number> {
+  if (provider === "playbooks" && !skill) {
+    return 30;
+  }
+
+  const args = provider === "skills"
+    ? skill
+    ? ["skills", "add", repo, "--skill", skill]
+    : ["skills", "add", repo]
+    : provider === "playbooks"
+    ? ["playbooks", "add", "skill", repo, "--skill", skill as string]
+    : provider === "skillkit"
+    ? skill
+      ? ["skillkit", "install", repo, "--skill", skill]
+      : ["skillkit", "install", repo]
+    : skill
+    ? ["openskills", "install", repo, skill]
+    : ["openskills", "install", repo];
+
   try {
-    await execa("npx", ["skills", "add", repo, "--skill", skill], {
+    await execa("npx", args, {
       stdio: "inherit",
     });
     return 0;
@@ -16,4 +40,8 @@ export async function runSkillsInstall(repo: string, skill: string): Promise<num
 
     return 30;
   }
+}
+
+export async function runSkillsInstall(repo: string, skill: string): Promise<number> {
+  return runProviderInstall("skills", repo, skill);
 }

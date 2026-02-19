@@ -1,4 +1,5 @@
 export type GuardSkillsErrorCode =
+  | "INVALID_OPTIONS"
   | "INVALID_REPO_INPUT"
   | "INVALID_LOCAL_PATH"
   | "INVALID_CONFIG"

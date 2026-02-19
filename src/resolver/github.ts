@@ -44,6 +44,12 @@ export interface ResolveOptions {
   retryBaseDelayMs?: number;
 }
 
+export interface ListSkillsOptions {
+  requestTimeoutMs?: number;
+  retries?: number;
+  retryBaseDelayMs?: number;
+}
+
 const ALLOWED_TEXT_EXTENSIONS = new Set([
   ".md",
   ".txt",
@@ -439,4 +445,52 @@ export async function resolveSkillFromGitHub(
     files,
     unverifiableReasons,
   };
+}
+
+export async function listSkillNamesFromGitHub(
+  repoInput: string,
+  options: ListSkillsOptions = {},
+): Promise<string[]> {
+  const requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+  const retries = options.retries ?? DEFAULT_RETRIES;
+  const retryBaseDelayMs = options.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS;
+
+  const { owner, repo } = parseRepoInput(repoInput);
+  const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN || undefined,
+    request: { timeout: requestTimeoutMs },
+  });
+
+  const repoMeta = await withRetry("Repository metadata fetch", retries, retryBaseDelayMs, () =>
+    octokit.repos.get({ owner, repo }),
+  );
+  const defaultBranch = repoMeta.data.default_branch;
+
+  const branch = await withRetry("Default branch fetch", retries, retryBaseDelayMs, () =>
+    octokit.repos.getBranch({ owner, repo, branch: defaultBranch }),
+  );
+  const treeSha = branch.data.commit.commit.tree.sha;
+
+  const tree = await withRetry("Repository tree fetch", retries, retryBaseDelayMs, () =>
+    octokit.git.getTree({ owner, repo, tree_sha: treeSha, recursive: "true" }),
+  );
+
+  const names = new Set<string>();
+  for (const node of tree.data.tree) {
+    if (node.type !== "blob" || !node.path) {
+      continue;
+    }
+
+    const base = path.posix.basename(node.path).toLowerCase();
+    if (base !== "skill.md") {
+      continue;
+    }
+
+    const name = path.posix.basename(path.posix.dirname(node.path));
+    if (name) {
+      names.add(name);
+    }
+  }
+
+  return [...names].sort((a, b) => a.localeCompare(b));
 }
